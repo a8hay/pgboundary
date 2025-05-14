@@ -149,24 +149,54 @@ func (c *Config) loadPgBouncerConfig(path string) error {
 func parseTarget(value string) (Target, error) {
 	target := Target{}
 
-	// Split the string by spaces and parse key=value pairs
-	for _, part := range strings.Fields(value) {
-		kv := strings.SplitN(part, "=", 2)
-		if len(kv) != 2 {
-			continue
-		}
+	// Split the string into key-value pairs by spaces
+	parts := strings.Split(value, " ")
+	var key, val string
+	for _, part := range parts {
+		// Check if the part contains an '='
+		if strings.Contains(part, "=") {
+			// If we already have a key-value pair in progress, process it
+			if key != "" {
+				switch key {
+				case "host":
+					target.Host = val
+				case "target":
+					target.Target = val
+				case "database":
+					target.Database = val
+				case "auth":
+					target.Auth = val
+				case "scope":
+					target.Scope = val
+				}
+				key, val = "", ""
+			}
 
-		switch kv[0] {
+			// Split the new key-value pair
+			kv := strings.SplitN(part, "=", 2)
+			key = kv[0]
+			val = strings.Trim(kv[1], "'") // Remove single quotes if present
+		} else {
+			// Append to the current value if it's part of a quoted string
+			if key != "" {
+				val += " " + strings.Trim(part, "'") // Remove single quotes if present
+			}
+		}
+	}
+
+	// Process the last key-value pair
+	if key != "" {
+		switch key {
 		case "host":
-			target.Host = kv[1]
+			target.Host = val
 		case "target":
-			target.Target = kv[1]
+			target.Target = val
 		case "database":
-			target.Database = kv[1]
+			target.Database = val
 		case "auth":
-			target.Auth = kv[1]
+			target.Auth = val
 		case "scope":
-			target.Scope = kv[1]
+			target.Scope = val
 		}
 	}
 
