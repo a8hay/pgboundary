@@ -171,10 +171,12 @@ func StartConnection(target config.Target, authScope, targetScope, authMethod st
 
 	var connResp struct {
 		Credentials []struct {
-			Credential struct {
-				Username string `json:"username"`
-				Password string `json:"password"`
-			} `json:"credential"`
+			Secret struct {
+				Decoded struct {
+					Username string `json:"username"`
+					Password string `json:"password"`
+				} `json:"decoded"`
+			} `json:"secret"`
 		} `json:"credentials"`
 		Address string `json:"address"`
 		Port    int    `json:"port"`
@@ -189,8 +191,8 @@ func StartConnection(target config.Target, authScope, targetScope, authMethod st
 	}
 
 	return &Connection{
-		Username: connResp.Credentials[0].Credential.Username,
-		Password: connResp.Credentials[0].Credential.Password,
+		Username: connResp.Credentials[0].Secret.Decoded.Username,
+		Password: connResp.Credentials[0].Secret.Decoded.Password,
 		Host:     connResp.Address,
 		Port:     strconv.Itoa(connResp.Port),
 		Pid:      boundaryPid,
